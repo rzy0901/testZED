@@ -73,10 +73,6 @@ if __name__ == "__main__":
     zed.disable_object_detection()
     zed.disable_positional_tracking()
     zed.close()
-
-    file = open('./' + 'data.txt', 'w', encoding='utf-8')
-
     savemat('data.mat',{'timestampList':timestampList,'keypoints':keypoints})
-
     print(len(timestampList))
     print(len(keypoints))
