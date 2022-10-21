@@ -12,4 +12,4 @@ Using a ZED 2i to convert `.svo` file to 3d skeletons.
 
 ![image](https://user-images.githubusercontent.com/66763689/197104509-e7c63ab2-8b38-4d8f-ba0e-24e48e9878c6.png)
 
-![image](https://user-images.githubusercontent.com/66763689/197104542-4bb72b03-52f0-4d93-a1f1-8e83c16db45e.png)
+![image](https://rzy0901.github.io/zed.assets/test2.gif)
