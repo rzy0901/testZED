@@ -1,11 +1,13 @@
 import os
 import pyzed.sl as sl
 from scipy.io import savemat
+from tqdm import tqdm, trange
+
 
 def copyDirectory_createMat(file_dir,output_dir):
     obj = os.scandir(file_dir)
     count = 1
-    for entry in obj:
+    for entry in tqdm(list(obj),desc=file_dir):
         if entry.is_dir():
             os.makedirs(os.path.join(output_dir,entry.name),exist_ok=True)
             copyDirectory_createMat(entry.path,os.path.join(output_dir,entry.name))
@@ -26,7 +28,7 @@ def svo2mat(svo_path,output_path):
     init_params.coordinate_units = sl.UNIT.METER          # Set coordinate units
     init_params.depth_mode = sl.DEPTH_MODE.PERFORMANCE
     init_params.coordinate_system = sl.COORDINATE_SYSTEM.RIGHT_HANDED_Y_UP
-    print("Using SVO file: {0}".format(svo_path))
+    # print("Using SVO file: {0}".format(svo_path))
     init_params.svo_real_time_mode = True # Real Time Modes would drop some frames.
     init_params.set_from_svo_file(svo_path)
     err = zed.open(init_params)
@@ -38,8 +40,10 @@ def svo2mat(svo_path,output_path):
     obj_param = sl.ObjectDetectionParameters()
     obj_param.enable_body_fitting = True            
     obj_param.enable_tracking = True
-    obj_param.detection_model = sl.DETECTION_MODEL.HUMAN_BODY_FAST	
+    # obj_param.detection_model = sl.DETECTION_MODEL.HUMAN_BODY_FAST
+    obj_param.detection_model = sl.DETECTION_MODEL.HUMAN_BODY_ACCURATE    
     obj_param.body_format = sl.BODY_FORMAT.POSE_34
+    # obj_param.body_format = sl.BODY_FORMAT.POSE_18
     zed.enable_object_detection(obj_param)
     obj_runtime_param = sl.ObjectDetectionRuntimeParameters()
     obj_runtime_param.detection_confidence_threshold = 40
@@ -75,11 +79,11 @@ def svo2mat(svo_path,output_path):
     # print(len(timestampList))
     # print(len(keypoints))
     # print(len(keypoints[1]))
-    print(svo_path+ "  " +output_path)
+    # print(svo_path+ "  " +output_path)
 
 if __name__ == "__main__":
     file_dir = "/home/rzy/Documents/ZED"
-    output_dir = "./data2" # 注意不要将'./data'写为'./data/'
+    output_dir = "./data2_34" # 注意不要将'./data'写为'./data/'
     obj = os.scandir(file_dir)
     copyDirectory_createMat(file_dir,output_dir)
     print('finished.')
