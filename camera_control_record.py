@@ -22,13 +22,13 @@ def main():
     a = input('Press enter to begin recording.')
     runtime = sl.RuntimeParameters()
     mat = sl.Mat()
-    record(cam, runtime, mat, filepath="./data/Walk/walk1.svo", nframe=120)
+    record(cam, runtime, mat, filepath="./test.svo", nframe=120)
     cam.close()
 
 def print_camera_information(cam):
-    print("Resolution: {0}, {1}.".format(round(cam.get_camera_information().camera_resolution.width, 2), cam.get_camera_information().camera_resolution.height))
-    print("Camera FPS: {0}.".format(cam.get_camera_information().camera_fps))
-    print("Firmware: {0}.".format(cam.get_camera_information().camera_firmware_version))
+    print("Resolution: {0}, {1}.".format(round(cam.get_camera_information().camera_configuration.resolution.width, 2), cam.get_camera_information().camera_configuration.resolution.height))
+    print("Camera FPS: {0}.".format(cam.get_camera_information().camera_configuration.fps))
+    print("Firmware: {0}.".format(cam.get_camera_information().camera_configuration.firmware_version))
     print("Serial number: {0}.\n".format(cam.get_camera_information().serial_number))
 
 def record(cam, runtime, mat, filepath, nframe):

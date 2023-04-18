@@ -37,28 +37,25 @@ def svo2mat(svo_path,output_path):
     positional_tracking_parameters = sl.PositionalTrackingParameters()
     positional_tracking_parameters.set_as_static = True
     zed.enable_positional_tracking(positional_tracking_parameters)
-    obj_param = sl.ObjectDetectionParameters()
-    obj_param.enable_body_fitting = True            
-    obj_param.enable_tracking = True
-    # obj_param.detection_model = sl.DETECTION_MODEL.HUMAN_BODY_FAST
-    obj_param.detection_model = sl.DETECTION_MODEL.HUMAN_BODY_ACCURATE    
-    obj_param.body_format = sl.BODY_FORMAT.POSE_34
-    # obj_param.body_format = sl.BODY_FORMAT.POSE_18
-    zed.enable_object_detection(obj_param)
-    obj_runtime_param = sl.ObjectDetectionRuntimeParameters()
-    obj_runtime_param.detection_confidence_threshold = 40
-    # camera_info = zed.get_camera_information()
-    bodies = sl.Objects()
+    body_param = sl.BodyTrackingParameters()
+    body_param.enable_tracking = True                # Track people across images flow
+    body_param.enable_body_fitting = False            # Smooth skeleton move
+    body_param.detection_model = sl.BODY_TRACKING_MODEL.HUMAN_BODY_ACCURATE 
+    body_param.body_format = sl.BODY_FORMAT.BODY_34  # Choose the BODY_FORMAT you wish to use
+    zed.enable_body_tracking(body_param)
+    body_runtime_param = sl.BodyTrackingRuntimeParameters()
+    body_runtime_param.detection_confidence_threshold = 40
+    bodies = sl.Bodies()
     timestampList = []
     keypoints = []
     localorientations = []
     localpositions = []
     while zed.grab() == sl.ERROR_CODE.SUCCESS:
         # Retrieve objects
-        zed.retrieve_objects(bodies, obj_runtime_param)
+        zed.retrieve_bodies(bodies, body_runtime_param)
         if bodies.is_new:
             timestamp = bodies.timestamp
-            obj_array = bodies.object_list
+            obj_array = bodies.body_list
             if obj_array == []:
                 continue
             first_object = obj_array[0]
@@ -83,7 +80,7 @@ def svo2mat(svo_path,output_path):
 
 if __name__ == "__main__":
     file_dir = "/home/rzy/Documents/ZED"
-    output_dir = "./data2_34" # 注意不要将'./data'写为'./data/'
+    output_dir = "./test" # 注意不要将'./data'写为'./data/'
     obj = os.scandir(file_dir)
     copyDirectory_createMat(file_dir,output_dir)
     print('finished.')

@@ -1,7 +1,6 @@
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
-
 from threading import Lock
 from cv_viewer.utils import *
 import numpy as np
@@ -187,8 +186,8 @@ class Simple3DObject:
     
     def add_sphere(self): 
         m_radius = 0.025
-        m_stack_count = 16
-        m_sector_count = 16
+        m_stack_count = 12
+        m_sector_count = 12
 
         for i in range(m_stack_count+1):
             lat0 = M_PI * (-0.5 + (i - 1) / m_stack_count)
@@ -267,12 +266,25 @@ class Simple3DObject:
             glDisableVertexAttribArray(1)
 
 class Skeleton:
-    def __init__(self, _body_format = sl.BODY_FORMAT.POSE_18):
+    def __init__(self, _body_format = sl.BODY_FORMAT.BODY_18):
         self.clr = [0,0,0,1]
         self.kps = []
         self.joints = Simple3DObject(False)
         self.Z = 1
         self.body_format = _body_format
+
+    def createSk(self, obj, BODY_PARTS, BODY_BONES):
+        for bone in BODY_BONES:
+            kp_1 = obj.keypoint[bone[0].value]
+            kp_2 = obj.keypoint[bone[1].value]
+            if math.isfinite(kp_1[0]) and math.isfinite(kp_2[0]):
+                self.joints.add_line(kp_1, kp_2)
+
+        for part in range(len(BODY_PARTS)-1):    # -1 to avoid LAST
+            kp = obj.keypoint[part]
+            norm = np.linalg.norm(kp)
+            if math.isfinite(norm):
+                self.kps.append(kp)
 
     def set(self, obj):
         self.joints.set_drawing_type(GL_LINES)
@@ -280,47 +292,14 @@ class Skeleton:
         self.Z = abs(obj.position[2])
         # Draw skeletons
         if obj.keypoint.size > 0:
-            # POSE_18 -> 18 keypoints
-            if self.body_format == sl.BODY_FORMAT.POSE_18:
-                # Bones
-                # Definition of SKELETON_BONES in cv_viewer.utils.py, which slightly differs from BODY_BONES           
-                for bone in SKELETON_BONES:
-                    kp_1 = obj.keypoint[bone[0].value]
-                    kp_2 = obj.keypoint[bone[1].value]
-                    if math.isfinite(kp_1[0]) and math.isfinite(kp_2[0]):
-                        self.joints.add_line(kp_1, kp_2)
-
-                for part in range(len(sl.BODY_PARTS)-1):    # -1 to avoid LAST
-                    kp = obj.keypoint[part]
-                    norm = np.linalg.norm(kp)
-                    if math.isfinite(norm):
-                        self.kps.append(kp)
-
-                # Create backbone (not defined in sl.BODY_BONES)
-                spine = (obj.keypoint[sl.BODY_PARTS.LEFT_HIP.value] + obj.keypoint[sl.BODY_PARTS.RIGHT_HIP.value]) / 2
-                neck = obj.keypoint[sl.BODY_PARTS.NECK.value]
-                self.joints.add_line(spine, neck)
-
-                # Spine base joint
-                if math.isfinite(np.linalg.norm(spine)):
-                    self.kps.append(spine)
-            
-            # POSE_34 -> 34 keypoints
-            elif self.body_format == sl.BODY_FORMAT.POSE_34:
-                for bone in sl.BODY_BONES_POSE_34:
-                    kp_1 = obj.keypoint[bone[0].value]
-                    kp_2 = obj.keypoint[bone[1].value]
-                    if math.isfinite(kp_1[0]) and math.isfinite(kp_2[0]):
-                        self.joints.add_line(kp_1, kp_2)
-
-                for part in range(len(sl.BODY_PARTS_POSE_34)-1):
-                    kp = obj.keypoint[part]
-                    norm = np.linalg.norm(kp)
-                    if math.isfinite(norm):
-                        self.kps.append(kp)
-
-                
-
+            if self.body_format == sl.BODY_FORMAT.BODY_18:
+                self.createSk(obj, sl.BODY_18_PARTS, sl.BODY_18_BONES)
+            elif self.body_format == sl.BODY_FORMAT.BODY_34:
+                self.createSk(obj, sl.BODY_34_PARTS, sl.BODY_34_BONES)
+            elif self.body_format == sl.BODY_FORMAT.BODY_38:
+                self.createSk(obj, sl.BODY_38_PARTS, sl.BODY_38_BONES)
+            elif self.body_format == sl.BODY_FORMAT.BODY_70:
+                self.createSk(obj, sl.BODY_70_PARTS, sl.BODY_70_BONES)
 
     def push_to_GPU(self):
         self.joints.push_to_GPU()
@@ -335,7 +314,6 @@ class Skeleton:
         glUniform4f(shader_clr, self.clr[0],self.clr[1],self.clr[2],self.clr[3])         
         for k in self.kps:
             glUniform4f(shader_pt, k[0],k[1],k[2], 1)
-            sphere.draw()
             sphere.draw()
 
 IMAGE_FRAGMENT_SHADER = """
@@ -444,7 +422,7 @@ class GLViewer:
         self.basic_sphere = Simple3DObject(True)
         # Show tracked objects only
         self.is_tracking_on = False
-        self.body_format = sl.BODY_FORMAT.POSE_18
+        self.body_format = sl.BODY_FORMAT.BODY_18
 
     def init(self, _params, _is_tracking_on, _body_format): 
         glutInit()
@@ -548,16 +526,16 @@ class GLViewer:
         else:
             return (_object_data.tracking_state == sl.OBJECT_TRACKING_STATE.OK or _object_data.tracking_state == sl.OBJECT_TRACKING_STATE.OFF)
 
-    def update_view(self, _image, _objs):       # _objs of type sl.Objects
+    def update_view(self, _image, _bodies):       # _objs of type sl.Bodies
         self.mutex.acquire()
 
         # Clear objects
         self.bodies.clear()
         # Only show tracked objects
-        for obj in _objs.object_list:
-            if self.render_object(obj):
+        for _body in _bodies.body_list:
+            if self.render_object(_body):
                 current_sk = Skeleton(self.body_format)
-                current_sk.set(obj)
+                current_sk.set(_body)
                 self.bodies.append(current_sk)
         self.mutex.release()
 
@@ -595,7 +573,8 @@ class GLViewer:
 
     def draw(self):
         glUseProgram(self.shader_sk_image.get_program_id())
-        glUniformMatrix4fv(self.shader_sk_MVP, 1, GL_TRUE,  (GLfloat * len(self.projection))(*self.projection))    
+        glUniformMatrix4fv(self.shader_sk_MVP, 1, GL_TRUE,  (GLfloat * len(self.projection))(*self.projection))
+        
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
         for body in self.bodies:
             body.draw(self.shader_sphere_clr, self.basic_sphere, self.shader_sphere_MVP, self.projection)
@@ -605,5 +584,4 @@ class GLViewer:
         glUniformMatrix4fv(self.shader_sphere_MVP, 1, GL_TRUE,  (GLfloat * len(self.projection))(*self.projection))
         for body in self.bodies:
             body.drawKPS(self.shader_sphere_clr, self.basic_sphere, self.shader_sphere_pt)
-
         glUseProgram(0)

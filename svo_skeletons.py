@@ -31,26 +31,23 @@ if __name__ == "__main__":
     positional_tracking_parameters.set_as_static = True
     zed.enable_positional_tracking(positional_tracking_parameters)
 
-    obj_param = sl.ObjectDetectionParameters()
-    obj_param.enable_body_fitting = True            # Smooth skeleton move
-    # Track people across images flow
-    obj_param.enable_tracking = True
-    obj_param.detection_model = sl.DETECTION_MODEL.HUMAN_BODY_ACCURATE	
-    # obj_param.detection_model = sl.DETECTION_MODEL.HUMAN_BODY_FAST
-    # Choose the BODY_FORMAT you wish to use
-    obj_param.body_format = sl.BODY_FORMAT.POSE_34 # sl.BODY_FORMAT.POSE_34
+    body_param = sl.BodyTrackingParameters()
+    body_param.enable_tracking = True                # Track people across images flow
+    body_param.enable_body_fitting = False            # Smooth skeleton move
+    body_param.detection_model = sl.BODY_TRACKING_MODEL.HUMAN_BODY_ACCURATE 
+    body_param.body_format = sl.BODY_FORMAT.BODY_18  # Choose the BODY_FORMAT you wish to use
 
     # Enable Object Detection module
-    zed.enable_object_detection(obj_param)
+    zed.enable_body_tracking(body_param)
 
-    obj_runtime_param = sl.ObjectDetectionRuntimeParameters()
-    obj_runtime_param.detection_confidence_threshold = 40
+    body_runtime_param = sl.BodyTrackingRuntimeParameters()
+    body_runtime_param.detection_confidence_threshold = 40
 
     # Get ZED camera information
     camera_info = zed.get_camera_information()
 
     # Create ZED objects filled in the main loop
-    bodies = sl.Objects()
+    bodies = sl.Bodies()
     timestampList = []
     keypoints = []
     localorientations = []
@@ -58,10 +55,10 @@ if __name__ == "__main__":
 
     while zed.grab() == sl.ERROR_CODE.SUCCESS:
         # Retrieve objects
-        zed.retrieve_objects(bodies, obj_runtime_param)
+        zed.retrieve_bodies(bodies, body_runtime_param)
         if bodies.is_new:
             timestamp = bodies.timestamp
-            obj_array = bodies.object_list
+            obj_array = bodies.body_list
             first_object = obj_array[0]
             keypoint = first_object.keypoint
             localorientation = first_object.local_orientation_per_joint
@@ -77,8 +74,6 @@ if __name__ == "__main__":
     zed.disable_positional_tracking()
     zed.close()
 
-    # print(sl.BODY_BONES)
-    print(sl.BODY_BONES_POSE_34)
     # savemat('./data/data_all.mat',{'timestampList':timestampList,'keypoints':keypoints,'localorientations':localorientations,'localpositions':localpositions})
     savemat('./data/data_all.mat',{'timestampList':timestampList,'keypoints':keypoints})
     print(len(timestampList))

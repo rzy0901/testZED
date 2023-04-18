@@ -99,7 +99,7 @@ def main():
         exit()
     
     # Get image size
-    image_size = zed.get_camera_information().camera_resolution
+    image_size = zed.get_camera_information().camera_configuration.resolution
     width = image_size.width
     height = image_size.height
     width_sbs = width * 2
@@ -116,11 +116,9 @@ def main():
     if output_as_video:
         # Create video writer with MPEG-4 part 2 codec
         video_writer = cv2.VideoWriter(str(output_path),
-                                    #    cv2.VideoWriter_fourcc('M', '4', 'S', '2'),
-                                       cv2.VideoWriter_fourcc(*'MP4V'),
-                                       max(zed.get_camera_information().camera_fps, 25),
+                                       cv2.VideoWriter_fourcc('M', '4', 'S', '2'),
+                                       max(zed.get_camera_information().camera_configuration.fps, 25),
                                        (width_sbs, height))
-
 
         if not video_writer.isOpened():
             sys.stdout.write("OpenCV video writer cannot be opened. Please check the .avi file path and write "
@@ -129,7 +127,6 @@ def main():
             exit()
     
     rt_param = sl.RuntimeParameters()
-    rt_param.sensing_mode = sl.SENSING_MODE.FILL
 
     # Start SVO conversion to AVI/SEQUENCE
     sys.stdout.write("Converting SVO... Use Ctrl-C to interrupt conversion.\n")
