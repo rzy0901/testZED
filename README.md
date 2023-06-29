@@ -4,6 +4,8 @@
 
 + [ZED SDK](https://www.stereolabs.com/developers/release/) should be installed and `HD1080_SN35745898_19-28-43.svo` is placed in `/home/rzy/Documents/ZED/`.
   + ZED SDK 4.0.1 is used in this repository.
+  + [Blog post](https://rzy0901.github.io/post/zed/) for my notes.
+
 + Usage: See [commands.md](./commands.md)
 
 + Screenshots:
