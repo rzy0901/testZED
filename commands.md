@@ -18,7 +18,7 @@ Export 3-d skeletons to `.mat` from local recorded `.svo`.
 python3 svo_skeletons.py
 ```
 
-Export `.svo` to `.avi` videos.
+Export `.svo` to `.mp4` videos.
 
 ```
 python3 svo_export.py ./test.svo ./videos/left_right.mp4 0
