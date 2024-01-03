@@ -45,6 +45,7 @@ if __name__ == "__main__":
 
     # Get ZED camera information
     camera_info = zed.get_camera_information()
+    fps = camera_info.camera_configuration.fps
 
     # Create ZED objects filled in the main loop
     bodies = sl.Bodies()
@@ -75,7 +76,7 @@ if __name__ == "__main__":
     zed.close()
 
     # savemat('./data/data_all.mat',{'timestampList':timestampList,'keypoints':keypoints,'localorientations':localorientations,'localpositions':localpositions})
-    savemat('./data/data_all.mat',{'timestampList':timestampList,'keypoints':keypoints})
+    savemat('./data/data_all.mat',{'timestampList':timestampList,'keypoints':keypoints,'fps':fps})
     print(len(timestampList))
     print(len(keypoints))
     print(len(keypoints[1]))

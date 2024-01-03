@@ -41,11 +41,14 @@ def svo2mat(svo_path,output_path):
     body_param.enable_tracking = True                # Track people across images flow
     body_param.enable_body_fitting = True            # Smooth skeleton move
     body_param.detection_model = sl.BODY_TRACKING_MODEL.HUMAN_BODY_ACCURATE 
-    body_param.body_format = sl.BODY_FORMAT.BODY_70  # Choose the BODY_FORMAT you wish to use
+    body_param.body_format = sl.BODY_FORMAT.BODY_34  # Choose the BODY_FORMAT you wish to use
     zed.enable_body_tracking(body_param)
     body_runtime_param = sl.BodyTrackingRuntimeParameters()
     body_runtime_param.detection_confidence_threshold = 40
     bodies = sl.Bodies()
+    # Get ZED camera information
+    camera_info = zed.get_camera_information()
+    fps = camera_info.camera_configuration.fps
     timestampList = []
     keypoints = []
     localorientations = []
@@ -72,17 +75,16 @@ def svo2mat(svo_path,output_path):
     zed.disable_positional_tracking()
     zed.close()
     # print(sl.BODY_BONES_POSE_34)
-    savemat(output_path,{'timestampList':timestampList,'keypoints':keypoints})
+    savemat(output_path,{'timestampList':timestampList,'keypoints':keypoints,'fps':fps})
     # print(len(timestampList))
     # print(len(keypoints))
     # print(len(keypoints[1]))
     # print(svo_path+ "  " +output_path)
 
 if __name__ == "__main__":
-    file_dir = "/home/rzy/Documents/ZED/rzy/run2/"
-    output_dir = "./data_70/run2" # 注意不要将'./data'写为'./data/'
+    file_dir = "/home/rzy/Documents/ZED/Data_1231/svos"
+    output_dir = "./data_new" # 注意不要将'./data'写为'./data/'
     os.makedirs(output_dir,exist_ok=True)
-    obj = os.scandir(file_dir)
     copyDirectory_createMat(file_dir,output_dir)
     print('finished.')
 
