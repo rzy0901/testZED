@@ -6,23 +6,25 @@ str_camera_settings = "BRIGHTNESS"
 step_camera_settings = 1
 
 
-def main():
-    print("Running...")
-    init = sl.InitParameters()
-    init.camera_resolution = sl.RESOLUTION.HD1080
-    init.depth_mode = sl.DEPTH_MODE.NONE
-    cam = sl.Camera()
-    if not cam.is_opened():
-        print("Opening ZED Camera...")
-    status = cam.open(init)
-    if status != sl.ERROR_CODE.SUCCESS:
-        print(repr(status))
-        exit()
+print("Running...")
+init = sl.InitParameters()
+init.camera_resolution = sl.RESOLUTION.HD1080
+init.depth_mode = sl.DEPTH_MODE.NONE
+cam = sl.Camera()
+if not cam.is_opened():
+    print("Opening ZED Camera...")
+status = cam.open(init)
+if status != sl.ERROR_CODE.SUCCESS:
+    print(repr(status))
+    exit()
+
+def runZed():
     print_camera_information(cam)
-    a = input('Press enter to begin recording.')
+    fps = cam.get_camera_information().camera_configuration.fps
+    # a = input('Press enter to begin recording.')
     runtime = sl.RuntimeParameters()
     mat = sl.Mat()
-    record(cam, runtime, mat, filepath="./test.svo", nframe=120)
+    record(cam, runtime, mat, filepath="./test.svo", nframe=fps*5)
     cam.close()
 
 def print_camera_information(cam):
@@ -56,4 +58,4 @@ def record(cam, runtime, mat, filepath, nframe):
     cv2.destroyAllWindows()
 
 if __name__ == "__main__":
-    main()
+    runZed()
