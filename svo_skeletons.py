@@ -65,6 +65,8 @@ def cam2mat(cam,output_path):
     keypoints = []
     localorientations = []
     localpositions = []
+    positions = []
+    velocities = []
     while cam.grab() == sl.ERROR_CODE.SUCCESS:
         cam.retrieve_bodies(bodies, body_runtime_param)
         if bodies.is_new:
@@ -75,12 +77,16 @@ def cam2mat(cam,output_path):
             first_object = obj_array[0]
             keypoint = first_object.keypoint
             localorientation = first_object.local_orientation_per_joint
-            localposition = first_object.local_position_per_joint	
+            localposition = first_object.local_position_per_joint
+            position = first_object.position
+            velocity = first_object.velocity	
             # Update List
             keypoints.append(keypoint)
             localorientations.append(localorientation)
             localpositions.append(localposition)
             timestampList.append(timestamp.get_milliseconds())
+            positions.append(position)
+            velocities.append(velocity)
     ERROR = 0
     try:
         if len(timestampList) == 0 or len(keypoints) == 0:
@@ -88,7 +94,7 @@ def cam2mat(cam,output_path):
             raise ValueError(f"Timestamp list or keypoints list for {output_path} is empty.")
     except ValueError as e:
         print(e)
-    savemat(output_path,{'timestampList':timestampList,'keypoints':keypoints,'fps':fps})
+    savemat(output_path,{'timestampList':timestampList,'keypoints':keypoints,'fps':fps,'positions':positions,'velocities':velocities})
     # print(f"Nframes:{len(keypoints)} {svo_path} {output_path}")
     return ERROR,timestampList,keypoints,fps
 
