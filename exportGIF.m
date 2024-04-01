@@ -11,6 +11,9 @@ elseif nargin == 2
     imshow = true;
 end
 load(mat_path)
+keypoints(isnan(keypoints)) = 0;
+positions(isnan(positions)) = 0;
+velocities(isnan(velocities)) = 0;
 % fps =  30;
 timestampList = timestampList-timestampList(1);
 if size(keypoints,2) == 18
@@ -22,7 +25,7 @@ connections = [1 2;2 3;3 4;4 5;5 6;6 7;7 9;6 8;8 10;4 11;11 13;13 15;15 17;17 31
 end
 hf = figure(1);
 hf.Color = 'white';
-for ii = 2:1:length(timestampList)-1 % 舍弃第一帧和最后一帧.
+for ii = 1:1:length(timestampList) % 舍弃第一帧和最后一帧.
     cla
     x = squeeze(keypoints(ii,:,1));
     y = squeeze(keypoints(ii,:,2));
@@ -33,13 +36,13 @@ for ii = 2:1:length(timestampList)-1 % 舍弃第一帧和最后一帧.
     ymax = max([0 max(keypoints(:,:,2),[],'all')]);
     zmin = min([0 min(keypoints(:,:,3),[],'all')]);
     zmax = max([0 max(keypoints(:,:,3),[],'all')]);
-    xlim([zmin zmax]); % Z
-    ylim([xmin xmax]); % X
-    zlim([ymin ymax]); % Y
     % plot
     human = scatter3(z,x,y,'filled');
     hold on;
     axis equal;
+    xlim([zmin zmax]); % Z
+    ylim([xmin xmax]); % X
+    zlim([ymin ymax]); % Y
 %     xlim([-7 -2]); % 对着相机走
 %     ylim([-3 2]) % 垂直相机视角走
     view(30,30)

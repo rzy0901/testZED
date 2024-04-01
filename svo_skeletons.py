@@ -5,6 +5,7 @@ import pyzed.sl as sl
 from scipy.io import savemat
 import argparse
 import os
+import numpy as np    
 
 def main(args):
     input_svo_path = args.input_svo_path
@@ -59,6 +60,7 @@ def cam2mat(cam,output_path):
     body_runtime_param = sl.BodyTrackingRuntimeParameters()
     body_runtime_param.detection_confidence_threshold = 40
     bodies = sl.Bodies()
+    body_format = bodies.body_format
     camera_info = cam.get_camera_information()
     fps = camera_info.camera_configuration.fps
     timestampList = []
@@ -73,17 +75,26 @@ def cam2mat(cam,output_path):
             timestamp = bodies.timestamp
             obj_array = bodies.body_list
             if obj_array == []:
+                timestampList.append(timestamp.get_milliseconds())
+                if body_format == sl.BODY_FORMAT.BODY_18.value:
+                    keypoints.append(np.zeros((18,3)))
+                elif body_format == sl.BODY_FORMAT.BODY_34.value:
+                    keypoints.append(np.zeros((34,3)))
+                elif body_format == sl.BODY_FORMAT.BODY_38.value:
+                    keypoints.append(np.zeros((38,3)))
+                positions.append(np.zeros((3,)))
+                velocities.append(np.zeros((3,)))
                 continue
             first_object = obj_array[0]
             keypoint = first_object.keypoint
-            localorientation = first_object.local_orientation_per_joint
-            localposition = first_object.local_position_per_joint
+            # localorientation = first_object.local_orientation_per_joint
+            # localposition = first_object.local_position_per_joint
             position = first_object.position
             velocity = first_object.velocity	
             # Update List
             keypoints.append(keypoint)
-            localorientations.append(localorientation)
-            localpositions.append(localposition)
+            # localorientations.append(localorientation)
+            # localpositions.append(localposition)
             timestampList.append(timestamp.get_milliseconds())
             positions.append(position)
             velocities.append(velocity)
@@ -100,7 +111,7 @@ def cam2mat(cam,output_path):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Convert svo to mat.')
-    parser.add_argument('-i','--input_svo_path', type=str, default='./test.svo', help='Input svo path, default:./test.svo')
+    parser.add_argument('-i','--input_svo_path', type=str, default='./data1.svo', help='Input svo path, default:./test.svo')
     parser.add_argument('-o','--output_mat_path', type=str, default='./data/temp.mat', help='Output: mat path, default:./data/temp.mat')
     parser.add_argument('-b','--body_format', type=str, default='BODY_18', help='Capatured body format, available selections: BODY_18, BODY_34, BODY_38; default:BODY_18')
     args = parser.parse_args()
